@@ -4,6 +4,10 @@ var url = require('url');
 var path = require('path');
 var fs = require('fs');
 var sass = require('gulp-sass');
+var concat = require('gulp-concat'); // 合并文件
+var minCss = require('gulp-clean-css'); // 压缩css
+var autoprefixer = require('gulp-autoprefixer'); // 加前缀
+var uglify = require('gulp-uglify'); // 对js的压缩
 // 起服务
 gulp.task('server', function() {
     gulp.src('src')
@@ -28,7 +32,45 @@ gulp.task('server', function() {
 
 // 开发编译scss
 gulp.task('scss', function() {
+        gulp.src('./src/scss/*.scss')
+            .pipe(sass())
+            .pipe(concat('all.css'))
+            .pipe(gulp.dest('src/css'))
+    })
+    //gulp.watch 监听
+gulp.task('watch', function() {
+        gulp.watch('./src/scss/*.scss', ['scss'])
+    })
+    // 开发环境
+gulp.task('dev', ['server', 'watch']);
+
+// 线上环境
+
+// 对样式
+gulp.task('buildScss', function() {
     gulp.src('./src/scss/*.scss')
         .pipe(sass())
-        .pipe(gulp.dest('src/css'))
+        .pipe(concat('all.css'))
+        .pipe(autoprefixer({
+            browsers: ['last 2 versions', 'Android >=4.0']
+        }))
+        .pipe(minCss())
+        .pipe(gulp.dest('build/css'))
 })
+
+// 对js文件的操作
+gulp.task('buildJs', function() {
+    gulp.src('./src/js/*.js')
+        .pipe(concat('all.js'))
+        .pipe(uglify())
+        .pipe(gulp.dest('build/js'));
+})
+
+// gulp.task('copyHtml', function() {
+//     gulp.src('./src/**/*.html')
+//         .pipe(gulp.dest('build'))
+// })
+
+//  线上环境
+
+// gulp.task('build', ['buildScss', 'buildJs', 'copyHtml'])
